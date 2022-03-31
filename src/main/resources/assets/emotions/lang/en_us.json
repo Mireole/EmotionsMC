@@ -1,0 +1,9 @@
+{
+  "emotions.screen.main" : "Emotions' main screen",
+  "emotions.screen.main.select" : "Select skin",
+  "emotions.screen.main.slim_checkbox" : "Slim",
+  "emotions.screen.main.open_skins_folder" : "Open skins folder",
+  "emotions.screen.main.open_triggers_menu" : "Triggers",
+  "key.categories.emotions" : "Emotions",
+  "key.emotions.main_gui_key" : "Open main GUI"
+}

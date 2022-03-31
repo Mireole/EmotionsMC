@@ -1,0 +1,9 @@
+{
+  "emotions.screen.main" : "Menu principal d'Emotions",
+  "emotions.screen.main.select" : "Sélectionner le skin",
+  "emotions.screen.main.slim_checkbox" : "Fin",
+  "emotions.screen.main.open_skins_folder" : "Ouvrir le dossier des skins",
+  "emotions.screen.main.open_triggers_menu" : "Déclencheurs",
+  "key.categories.emotions" : "Emotions",
+  "key.emotions.main_gui_key" : "Ouvrir le menu principal"
+}

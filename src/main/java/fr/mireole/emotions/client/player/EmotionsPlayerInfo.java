@@ -9,10 +9,14 @@ import org.jetbrains.annotations.NotNull;
 
 @OnlyIn(Dist.CLIENT)
 public class EmotionsPlayerInfo extends PlayerInfo {
-    private ResourceLocation skin;
+    protected ResourceLocation skin;
+    protected String modelName;
+    protected boolean isDefaultSkin = true; // Used to prevent weird things like the player having a steve / alex skin instead of his default one sometimes.
 
     public EmotionsPlayerInfo(ClientboundPlayerInfoPacket.PlayerUpdate p_105311_) {
         super(p_105311_);
+        registerTextures();
+        modelName = super.getModelName();
         setSkinToDefault();
     }
 
@@ -23,20 +27,46 @@ public class EmotionsPlayerInfo extends PlayerInfo {
         setLastHealthTime(info.getLastHealthTime());
         setHealthBlinkTime(info.getHealthBlinkTime());
         setRenderVisibilityId(info.getRenderVisibilityId());
+        setSkin(info.getSkinLocation());
+        modelName = info.getModelName();
         registerTextures();
     }
 
 
     public void setSkinToDefault(){
-        setSkin(super.getSkinLocation());
+        if(!isDefaultSkin) {
+            setSkin(super.getSkinLocation());
+            isDefaultSkin = true;
+        }
     }
 
     public void setSkin(ResourceLocation skin) {
+        isDefaultSkin = false;
         this.skin = skin;
     }
 
     @Override
-    public @NotNull ResourceLocation getSkinLocation() {
+    @NotNull
+    public ResourceLocation getSkinLocation() {
         return skin;
     }
+
+    public boolean isDefault(ResourceLocation skin){
+        return skin == super.getSkinLocation();
+    }
+
+    public ResourceLocation getDefaultSkin(){
+        return super.getSkinLocation();
+    }
+
+    @Override
+    @NotNull
+    public String getModelName() {
+        return modelName;
+    }
+
+    public void setModelName(String modelName){
+        this.modelName = modelName;
+    }
+
 }
