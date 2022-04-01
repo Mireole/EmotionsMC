@@ -7,6 +7,36 @@
 
 name: Java CI with Gradle
 
+jobs:
+  vars:
+    name: Gather Variables
+    runs-on: ubuntu-20.04
+    outputs:
+      mod_id: ${{steps.mod_id.outputs.value }}
+      version: ${{steps.version.outputs.value }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Unshallow
+        run: git fetch --prune --unshallow
+
+      - name: Mod ID
+        id: mod_id
+        uses: christian-draeger/read-properties@1.0.1
+        with:
+          path: './gradle.properties'
+          property: 'mod_id'
+          
+      - name: Mod version
+        id: mod_version
+        uses: christian-draeger/read-properties@1.0.1
+        with:
+          path: './gradle.properties'
+          property: 'mod_version'
+
+
 on:
   push:
     branches: [ master ]
@@ -31,3 +61,8 @@ jobs:
       uses: gradle/gradle-build-action@0d13054264b0bb894ded474f08ebb30921341cee
       with:
         arguments: build
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: build_output
+        path: build/libs/${{needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.version }}.jar
