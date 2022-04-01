@@ -43,8 +43,9 @@ jobs:
           property: 'mod_version'
 
   build:
-
     runs-on: ubuntu-latest
+
+    needs: [ vars ]
 
     steps:
     - uses: actions/checkout@v3
