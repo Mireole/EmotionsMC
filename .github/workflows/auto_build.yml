@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-20.04
     outputs:
       mod_id: ${{steps.mod_id.outputs.value }}
-      version: ${{steps.version.outputs.value }}
+      mod_version: ${{steps.mod_version.outputs.value }}
 
     steps:
       - name: Checkout
@@ -64,4 +64,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: build_output
-        path: build/libs/${{needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.version }}.jar
+        path: build/libs/${{needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.mod_version }}.jar
