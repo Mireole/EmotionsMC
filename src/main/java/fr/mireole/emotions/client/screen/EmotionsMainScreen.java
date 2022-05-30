@@ -95,8 +95,7 @@ public class EmotionsMainScreen extends Screen {
                 20,
                 new TranslatableComponent("emotions.screen.main.open_triggers_menu"),
                 (button) -> {
-                    minecraft.player.displayClientMessage(new TextComponent("Feature not implemented yet").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)), false);
-                    onClose();
+                    minecraft.setScreen(new TriggersScreen());
                 }
         ));
         TranslatableComponent component = new TranslatableComponent("emotions.screen.main.slim_checkbox");
