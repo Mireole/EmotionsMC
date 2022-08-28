@@ -16,7 +16,7 @@ on:
 jobs:
   vars:
     name: Gather Variables
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     outputs:
       mod_id: ${{steps.mod_id.outputs.value }}
       mod_version: ${{steps.mod_version.outputs.value }}

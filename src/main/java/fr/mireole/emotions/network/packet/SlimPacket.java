@@ -1,10 +1,9 @@
 package fr.mireole.emotions.network.packet;
 
-import fr.mireole.emotions.api.SkinSwapper;
+import fr.mireole.emotions.api.skin.SkinSwapper;
 import fr.mireole.emotions.network.EmotionsNetwork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -14,18 +13,18 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-public record ModelNamePacket(UUID playerUUID, String modelName) {
+public record SlimPacket(UUID playerUUID, boolean slim) {
 
-    public static void encode(ModelNamePacket packet, FriendlyByteBuf buffer) {
+    public static void encode(SlimPacket packet, FriendlyByteBuf buffer) {
         buffer.writeUUID(packet.playerUUID);
-        buffer.writeUtf(packet.modelName);
+        buffer.writeBoolean(packet.slim);
     }
 
-    public static ModelNamePacket decode(FriendlyByteBuf buffer) {
-        return new ModelNamePacket(buffer.readUUID(), buffer.readUtf());
+    public static SlimPacket decode(FriendlyByteBuf buffer) {
+        return new SlimPacket(buffer.readUUID(), buffer.readBoolean());
     }
 
-    public static void handle(ModelNamePacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
+    public static void handle(SlimPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
             switch (context.getDirection()) {
@@ -33,15 +32,13 @@ public record ModelNamePacket(UUID playerUUID, String modelName) {
                     ClientLevel level = Minecraft.getInstance().level;
                     if (level != null) {
                         Player player = level.getPlayerByUUID(packet.playerUUID);
-                        if (player instanceof AbstractClientPlayer clientPlayer) {
-                            SkinSwapper.setModelNameFor(clientPlayer, packet.modelName);
-                        }
+                        SkinSwapper.setSlim(player, packet.slim);
                     }
                 }
                 case PLAY_TO_SERVER -> {
                     ServerPlayer sender = context.getSender();
                     if (sender != null) {
-                        ModelNamePacket newPacket = new ModelNamePacket(sender.getUUID(), packet.modelName);
+                        SlimPacket newPacket = new SlimPacket(sender.getUUID(), packet.slim);
                         sender.server.getPlayerList().broadcastAll(
                                 EmotionsNetwork.CHANNEL.toVanillaPacket(newPacket, NetworkDirection.PLAY_TO_CLIENT)
                         );

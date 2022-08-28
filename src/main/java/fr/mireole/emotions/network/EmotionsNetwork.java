@@ -1,7 +1,7 @@
 package fr.mireole.emotions.network;
 
 import fr.mireole.emotions.Emotions;
-import fr.mireole.emotions.network.packet.ModelNamePacket;
+import fr.mireole.emotions.network.packet.SlimPacket;
 import fr.mireole.emotions.network.packet.ResetSkinPacket;
 import fr.mireole.emotions.network.packet.SkinPacket;
 import net.minecraft.resources.ResourceLocation;
@@ -31,10 +31,10 @@ public class EmotionsNetwork {
                 ResetSkinPacket::decode,
                 ResetSkinPacket::handle);
 
-        CHANNEL.registerMessage(2, ModelNamePacket.class,
-                ModelNamePacket::encode,
-                ModelNamePacket::decode,
-                ModelNamePacket::handle);
+        CHANNEL.registerMessage(2, SlimPacket.class,
+                SlimPacket::encode,
+                SlimPacket::decode,
+                SlimPacket::handle);
     }
 
 }

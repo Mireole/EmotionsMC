@@ -28,7 +28,7 @@ public class PlayerEvents {
                         String name = file1.getName().replace(".png", "");
                         Player player = event.getPlayer().level.getPlayerByUUID(UUID.fromString(name));
                         if (player != null) {
-                            EmotionsNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) event.getPlayer()), new SkinPacket(file1.getName(), file1, player.getUUID()));
+                            EmotionsNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) event.getPlayer()), new SkinPacket(file1.getName(), file1.toPath(), player.getUUID()));
                         }
                     }
                     catch (IllegalArgumentException ignored) {
@@ -39,10 +39,26 @@ public class PlayerEvents {
             File file2 = new File(event.getPlayer().getUUID() + ".png");
             if(file2.exists()){
                 Objects.requireNonNull(event.getPlayer().getServer()).getPlayerList().broadcastAll(
-                        EmotionsNetwork.CHANNEL.toVanillaPacket(new SkinPacket(file2.getName(), file2, event.getPlayer().getUUID()), NetworkDirection.PLAY_TO_CLIENT)
+                        EmotionsNetwork.CHANNEL.toVanillaPacket(new SkinPacket(file2.getName(), file2.toPath(), event.getPlayer().getUUID()), NetworkDirection.PLAY_TO_CLIENT)
                 );
             }
         }
+
+
+    }
+
+    @SubscribeEvent
+    public static void startTracking(PlayerEvent.StartTracking event){
+        if(!event.getPlayer().level.isClientSide() && event.getTarget() instanceof Player player){
+            if(player.getUUID().equals(event.getPlayer().getUUID())){
+                return;
+            }
+            File file = new File("skins/downloaded/" + player.getUUID() + ".png");
+            if(file.exists()){
+                EmotionsNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) event.getPlayer()), new SkinPacket(file.getName(), file.toPath(), player.getUUID()));
+            }
+        }
+
     }
 
 }

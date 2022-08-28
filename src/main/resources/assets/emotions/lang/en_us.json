@@ -7,7 +7,16 @@
   "key.categories.emotions" : "Emotions",
   "key.emotions.main_gui_key" : "Open main GUI",
   "trigger.emotions.sneaking" : "Sneaking",
+  "trigger.emotions.sneaking.description" : "When the player sneaks",
+  "trigger.emotions.not_sneaking.description" : "When the player doesn't sneak",
   "trigger.emotions.sprinting" : "Sprinting",
+  "trigger.emotions.sprinting.description" : "When the player sprints",
+  "trigger.emotions.not_sprinting.description" : "When the player doesn't sprint",
   "emotions.screen.triggers.new_trigger" : "New trigger",
-  "emotions.screen.triggers.remove" : "Remove"
+  "emotions.screen.triggers.remove" : "Remove",
+  "emotions.screen.triggers.set_skin_to" : "Set skin to",
+  "emotions.screen.triggers.invert": "Invert trigger",
+  "emotions.screen.triggers": "Triggers screen",
+  "emotions.triggers.disabled_line_1": "This trigger is disabled because another one of the same type and inversion is present.",
+  "emotions.triggers.disabled_line_2": "Try inverting or removing the already existing one."
 }

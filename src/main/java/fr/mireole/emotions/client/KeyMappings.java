@@ -1,14 +1,9 @@
 package fr.mireole.emotions.client;
 
 import fr.mireole.emotions.Emotions;
-import fr.mireole.emotions.api.SkinSwapper;
 import fr.mireole.emotions.client.screen.EmotionsMainScreen;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.ToggleKeyMapping;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.alchemy.Potions;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.ClientRegistry;
@@ -16,8 +11,6 @@ import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.lwjgl.glfw.GLFW;
-
-import java.io.File;
 
 @OnlyIn(Dist.CLIENT)
 @Mod.EventBusSubscriber(modid = Emotions.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
@@ -46,8 +39,6 @@ public class KeyMappings {
 
     public static void onInput(Minecraft mc){
         if(mc.screen != null) return;
-        File skinDirectory = new File("skins");
-        skinDirectory.mkdir();
         if(mainGuiKey.isDown()){
             Minecraft.getInstance().setScreen(new EmotionsMainScreen());
         }

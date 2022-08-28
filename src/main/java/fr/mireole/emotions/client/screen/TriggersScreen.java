@@ -3,7 +3,7 @@ package fr.mireole.emotions.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import fr.mireole.emotions.Emotions;
-import fr.mireole.emotions.api.trigger.Trigger;
+import fr.mireole.emotions.api.trigger.Triggers;
 import fr.mireole.emotions.client.screen.widgets.ActiveTriggersList;
 import fr.mireole.emotions.client.screen.widgets.AvailableTriggerList;
 import net.minecraft.client.Minecraft;
@@ -15,6 +15,7 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 
 @OnlyIn(Dist.CLIENT)
 public class TriggersScreen extends Screen {
@@ -24,7 +25,7 @@ public class TriggersScreen extends Screen {
     public int leftPos;
     private int topPos;
     private AvailableTriggerList availableTriggersList;
-    private boolean isAvailableTriggersListOpened = false;
+    private boolean availableTriggersListOpened = false;
     private ActiveTriggersList activeTriggersList;
 
     public TriggersScreen() {
@@ -34,13 +35,12 @@ public class TriggersScreen extends Screen {
     @Override
     protected void init() {
         super.init();
+        Triggers.loadEnabledTriggers(); // Load triggers in case they were modified, to prevent having to restart the game in case they were modified.
         leftPos = (width - imageWidth) / 2;
         topPos = (height - imageHeight) / 2;
-        TranslatableComponent component = new TranslatableComponent("emotions.screen.triggers.new_trigger");
-        addRenderableWidget(new Button(leftPos+1, topPos+1, font.width(component.getVisualOrderText())+20, 20, component, (button) -> {
-            openAvailableTriggersList();
-        }));
-        activeTriggersList = new ActiveTriggersList(this, minecraft, width + 45, imageHeight-40, topPos+20, imageHeight+topPos-40, 40);
+        TranslatableComponent newTriggerComponent = new TranslatableComponent("emotions.screen.triggers.new_trigger");
+        addRenderableWidget(new Button(leftPos+1, topPos+1, font.width(newTriggerComponent.getVisualOrderText())+20, 20, newTriggerComponent, (button) -> openAvailableTriggersList()));
+        activeTriggersList = new ActiveTriggersList(this, minecraft, width + 45, imageHeight-40, topPos+20, imageHeight+topPos-40, 50);
         activeTriggersList.setLeftPos(0);
         addRenderableWidget(activeTriggersList);
         activeTriggersList.update();
@@ -48,23 +48,27 @@ public class TriggersScreen extends Screen {
         availableTriggersList.setLeftPos(0);
     }
 
+
     @Override
-    public void resize(Minecraft pMinecraft, int pWidth, int pHeight) {
+    public void resize(@NotNull Minecraft pMinecraft, int pWidth, int pHeight) {
         super.resize(pMinecraft, pWidth, pHeight);
         leftPos = (pWidth - imageWidth) / 2;
         topPos = (pHeight - imageHeight) / 2;
     }
 
     @Override
-    public void render(PoseStack p_96562_, int p_96563_, int p_96564_, float p_96565_) {
-        renderBackground(p_96562_);
-        super.render(p_96562_, p_96563_, p_96564_, p_96565_);
-        hideExceedingItems(p_96562_);
+    public void render(@NotNull PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        renderBackground(pPoseStack);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        hideExceedingItems(pPoseStack);
+        if (availableTriggersListOpened) {
+            availableTriggersList.reRenderTooltips(pPoseStack, pMouseX, pMouseY); // Re-render button tooltips to prevent them from being hidden by hideExceedingItems
+        }
     }
 
     // Renders again part of the images to hide the items exceeding the list
     private void hideExceedingItems(PoseStack stack) {
-        if (isAvailableTriggersListOpened) {
+        if (availableTriggersListOpened) {
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             RenderSystem.setShaderTexture(0, SCREEN_BACKGROUND);
@@ -83,37 +87,34 @@ public class TriggersScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(PoseStack p_96559_, int p_96560_) {
-        super.renderBackground(p_96559_, p_96560_);
+    public void renderBackground(@NotNull PoseStack pPoseStack, int pVOffset) {
+        super.renderBackground(pPoseStack, pVOffset);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, SCREEN_BACKGROUND);
-        blit(p_96559_, leftPos, topPos, 0, 0, imageWidth, imageHeight);
-    }
-
-    public void addTrigger(Trigger trigger) {
-        System.out.println(trigger.getName());
+        blit(pPoseStack, leftPos, topPos, 0, 0, imageWidth, imageHeight);
     }
 
     @Override
     public void onClose() {
+        Triggers.saveEnabledTriggers();
         super.onClose();
         assert minecraft != null;
         minecraft.setScreen(new EmotionsMainScreen());
     }
 
     public void openAvailableTriggersList() {
-        if(availableTriggersList != null && !isAvailableTriggersListOpened) {
+        if(availableTriggersList != null && !availableTriggersListOpened) {
             removeWidget(activeTriggersList);
             addRenderableWidget(availableTriggersList);
-            isAvailableTriggersListOpened = true;
+            availableTriggersListOpened = true;
         }
     }
 
     public void closeAvailableTriggersList() {
-        if(availableTriggersList != null && isAvailableTriggersListOpened) {
+        if(availableTriggersList != null && availableTriggersListOpened) {
             removeWidget(availableTriggersList);
-            isAvailableTriggersListOpened = false;
+            availableTriggersListOpened = false;
             addRenderableWidget(activeTriggersList);
             activeTriggersList.update();
         }
@@ -121,5 +122,11 @@ public class TriggersScreen extends Screen {
 
     public Font getFont() {
         return font;
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        activeTriggersList.tick();
     }
 }

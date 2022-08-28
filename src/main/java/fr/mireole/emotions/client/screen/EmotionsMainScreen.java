@@ -6,10 +6,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
 import fr.mireole.emotions.Emotions;
-import fr.mireole.emotions.api.SkinSwapper;
+import fr.mireole.emotions.api.skin.Skin;
+import fr.mireole.emotions.api.skin.SkinManager;
+import fr.mireole.emotions.api.skin.SkinSwapper;
 import fr.mireole.emotions.client.player.SkinPlayer;
-import fr.mireole.emotions.client.texture.SkinTexture;
-import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
@@ -20,9 +20,6 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextColor;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.PlayerModelPart;
@@ -31,10 +28,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @OnlyIn(Dist.CLIENT)
 public class EmotionsMainScreen extends Screen {
@@ -59,7 +55,6 @@ public class EmotionsMainScreen extends Screen {
     @Override
     protected void init() {
         assert minecraft != null && minecraft.player != null;
-        LocalPlayer localPlayer = minecraft.player;
         leftPos = (width - imageWidth) / 2;
         topPos = (height - imageHeight) / 2;
         rightArrow = new StateSwitchingButton(leftPos + 380, topPos + imageHeight / 2 - 6, 12, 17, false);
@@ -76,10 +71,13 @@ public class EmotionsMainScreen extends Screen {
                         SkinSwapper.resetSkinForServer();
                     }
                     else {
-                        SkinSwapper.sendSkinToServer(new File("skins/", players.get(selectedSkin).getName().getString()));
+                        Skin skin = SkinSwapper.getSkin(players.get(selectedSkin));
+                        if (skin != null) {
+                            SkinSwapper.sendSkinToServer(skin);
+                            SkinSwapper.setSkinFor(minecraft.player, skin);
+                        }
                     }
-                    String newModelName = checkbox.selected() ? "slim" : "default";
-                    SkinSwapper.sendModelNameToServer(newModelName);
+                    SkinSwapper.sendSlimPacket(checkbox.selected());
 
                     onClose();
         }));
@@ -94,15 +92,23 @@ public class EmotionsMainScreen extends Screen {
                 font.width(new TranslatableComponent("emotions.screen.main.open_triggers_menu")) + 8,
                 20,
                 new TranslatableComponent("emotions.screen.main.open_triggers_menu"),
-                (button) -> {
-                    minecraft.setScreen(new TriggersScreen());
-                }
+                (button) -> minecraft.setScreen(new TriggersScreen())
         ));
         TranslatableComponent component = new TranslatableComponent("emotions.screen.main.slim_checkbox");
         checkbox = new Checkbox(leftPos+1, topPos+1, font.width(component.getVisualOrderText())+20, 20, component, minecraft.player.getModelName().equals("slim"));
         addRenderableWidget(checkbox);
-        File skinsDirectory = new File(minecraft.gameDirectory, "skins/");
-        File[] files = skinsDirectory.listFiles();
+        generatePlayers();
+        playerXRot = -90;
+        playerYRot = -90;
+        selectedSkin = getActiveSkin();
+        updateArrowButtons();
+        updateSlimCheckbox();
+    }
+
+    public void generatePlayers(){
+        assert minecraft != null && minecraft.player != null;
+        players.clear();
+        LocalPlayer localPlayer = minecraft.player;
         int i = 0;
         for(PlayerModelPart part : PlayerModelPart.values()){
             if(minecraft.options.isModelPartEnabled(part) && part != PlayerModelPart.CAPE){
@@ -112,57 +118,41 @@ public class EmotionsMainScreen extends Screen {
         SkinPlayer player1 = new SkinPlayer(localPlayer, true);
         player1.setModelParts(i);
         players.add(player1);
-        if (files != null) {
-            if (files.length > 0) {
-                for (File file : files) {
-                    if (file.getName().endsWith(".png")) {
-                        SkinPlayer player = new SkinPlayer(minecraft.level, file);
-                        player.setModelParts(i);
-                        players.add(player);
-                    }
-                }
-            }
+        for (Skin skin : SkinManager.getSkins()) {
+            SkinPlayer player = new SkinPlayer(localPlayer.clientLevel, skin);
+            player.setModelParts(i);
+            players.add(player);
         }
-        playerXRot = -90;
-        playerYRot = -90;
-        selectedSkin = getSelectedSkin();
-        updateArrowButtons();
-        setModelNames(localPlayer.getModelName());
     }
 
-    private int getSelectedSkin() {
-        assert minecraft != null && minecraft.player != null;
-        if(minecraft.textureManager.getTexture(minecraft.player.getSkinTextureLocation()) instanceof SkinTexture playerSkin) {
-            for (SkinPlayer player : players) {
-                if (minecraft.textureManager.getTexture(player.getSkinTextureLocation()) instanceof SkinTexture skinPlayerSkin) {
-                    try {
-                        boolean b = Files.mismatch(new File(playerSkin.getSkinLocation().getPath()).toPath(), new File(skinPlayerSkin.getSkinLocation().getPath()).toPath()) == -1;
-                        if(b) return players.indexOf(player);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
+    private int getActiveSkin() {
+        assert minecraft != null;
+        Skin skin = SkinSwapper.getSkin(minecraft.player);
+        assert skin != null;
+        for(Skin skin1 : SkinManager.getSkins()){
+            if(skin1.getLocation().equals(skin.getLocation())){
+                return SkinManager.getSkins().indexOf(skin1) + 1;
             }
         }
         return 0;
     }
 
     @Override
-    public void render(@NotNull PoseStack p_96562_, int p_96563_, int p_96564_, float p_96565_) {
-        renderBackground(p_96562_);
-        super.render(p_96562_, p_96563_, p_96564_, p_96565_);
-        rightArrow.render(p_96562_, p_96563_, p_96564_, p_96565_);
-        leftArrow.render(p_96562_, p_96563_, p_96564_, p_96565_);
+    public void render(@NotNull PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+        renderBackground(poseStack);
+        super.render(poseStack, mouseX, mouseY, partialTick);
+        rightArrow.render(poseStack, mouseX, mouseY, partialTick);
+        leftArrow.render(poseStack, mouseX, mouseY, partialTick);
     }
 
     @Override
-    public void renderBackground(@NotNull PoseStack p_96559_, int p_96560_) {
-        super.renderBackground(p_96559_, p_96560_);
+    public void renderBackground(@NotNull PoseStack poseStack, int vOffset) {
+        super.renderBackground(poseStack, vOffset);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, SCREEN_BACKGROUND);
-        this.blit(p_96559_, leftPos, topPos, 0, 0, imageWidth, imageHeight);
-        renderLabels(p_96559_);
+        this.blit(poseStack, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        renderLabels();
         renderPlayer(leftPos + 200, topPos + 160, 60, playerXRot, playerYRot, players.get(selectedSkin));
         if(selectedSkin + 1 < players.size()){
             renderPlayer(leftPos + 300, topPos + 130, 30, playerXRot, playerYRot, players.get(selectedSkin + 1));
@@ -172,31 +162,32 @@ public class EmotionsMainScreen extends Screen {
         }
     }
 
-    public void renderPlayer(int p_98851_, int p_98852_, int p_98853_, float p_98854_, float p_98855_, SkinPlayer p_98856_) {
-        float f = p_98854_ / 100;
-        float f1 = p_98855_ / 100;
+    @SuppressWarnings("deprecation")
+    public void renderPlayer(int x, int y, int height, float xRot, float yRot, SkinPlayer player) {
+        float f = xRot / 100;
+        float f1 = yRot / 100;
         PoseStack posestack = RenderSystem.getModelViewStack();
         posestack.pushPose();
-        posestack.translate(p_98851_, p_98852_, 1050.0D);
+        posestack.translate(x, y, 1050.0D);
         posestack.scale(1.0F, 1.0F, -1.0F);
         RenderSystem.applyModelViewMatrix();
         PoseStack posestack1 = new PoseStack();
         posestack1.translate(0.0D, 0.0D, 1000.0D);
-        posestack1.scale((float) p_98853_, (float) p_98853_, (float) p_98853_);
+        posestack1.scale((float) height, (float) height, (float) height);
         Quaternion quaternion = Vector3f.ZP.rotationDegrees(180.0F);
         Quaternion quaternion1 = Vector3f.XP.rotationDegrees(f1 * 20.0F);
         quaternion.mul(quaternion1);
         posestack1.mulPose(quaternion);
-        float f2 = p_98856_.yBodyRot;
-        float f3 = p_98856_.getYRot();
-        float f4 = p_98856_.getXRot();
-        float f5 = p_98856_.yHeadRotO;
-        float f6 = p_98856_.yHeadRot;
-        p_98856_.yBodyRot = 180.0F + f * 20.0F;
-        p_98856_.setYRot(180.0F + f * 40.0F);
-        p_98856_.setXRot(-f1 * 20.0F);
-        p_98856_.yHeadRot = p_98856_.getYRot() / 2 + 90;
-        p_98856_.yHeadRotO = p_98856_.getYRot() / 2 + 90;
+        float f2 = player.yBodyRot;
+        float f3 = player.getYRot();
+        float f4 = player.getXRot();
+        float f5 = player.yHeadRotO;
+        float f6 = player.yHeadRot;
+        player.yBodyRot = 180.0F + f * 20.0F;
+        player.setYRot(180.0F + f * 40.0F);
+        player.setXRot(-f1 * 20.0F);
+        player.yHeadRot = player.getYRot() / 2 + 90;
+        player.yHeadRotO = player.getYRot() / 2 + 90;
         final Vector3f INVENTORY_DIFFUSE_LIGHT_0 = Util.make(new Vector3f(0.2F, -1.0F, -1.0F), Vector3f::normalize);
         final Vector3f INVENTORY_DIFFUSE_LIGHT_1 = Util.make(new Vector3f(-0.2F, 0.0F, -1.0F), Vector3f::normalize);
         RenderSystem.setShaderLights(INVENTORY_DIFFUSE_LIGHT_1, INVENTORY_DIFFUSE_LIGHT_0);
@@ -205,20 +196,20 @@ public class EmotionsMainScreen extends Screen {
         entityrenderdispatcher.overrideCameraOrientation(quaternion1);
         entityrenderdispatcher.setRenderShadow(false);
         MultiBufferSource.BufferSource multibuffersource$buffersource = Minecraft.getInstance().renderBuffers().bufferSource();
-        RenderSystem.runAsFancy(() -> entityrenderdispatcher.render(p_98856_, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, posestack1, multibuffersource$buffersource, 15728880));
+        RenderSystem.runAsFancy(() -> entityrenderdispatcher.render(player, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, posestack1, multibuffersource$buffersource, 15728880));
         multibuffersource$buffersource.endBatch();
         entityrenderdispatcher.setRenderShadow(true);
-        p_98856_.yBodyRot = f2;
-        p_98856_.setYRot(f3);
-        p_98856_.setXRot(f4);
-        p_98856_.yHeadRotO = f5;
-        p_98856_.yHeadRot = f6;
+        player.yBodyRot = f2;
+        player.setYRot(f3);
+        player.setXRot(f4);
+        player.yHeadRotO = f5;
+        player.yHeadRot = f6;
         posestack.popPose();
         RenderSystem.applyModelViewMatrix();
         Lighting.setupFor3DItems();
     }
 
-    public void renderLabels(PoseStack poseStack) {
+    public void renderLabels() {
 
     }
 
@@ -228,21 +219,21 @@ public class EmotionsMainScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(int p_96552_, int p_96553_, int p_96554_) {
-        if (p_96552_ == Minecraft.getInstance().options.keyInventory.getKey().getValue()) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == Minecraft.getInstance().options.keyInventory.getKey().getValue()) {
             onClose();
             return true;
         }
-        return super.keyPressed(p_96552_, p_96553_, p_96554_);
+        return super.keyPressed(pKeyCode, pScanCode, pModifiers);
     }
 
     @Override
-    public boolean mouseDragged(double p_94699_, double p_94700_, int p_94701_, double p_94702_, double p_94703_) {
-        playerXRot -= p_94702_ * 20;
-        playerYRot -= p_94703_ * 20;
+    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
+        playerXRot -= pDragX * 20;
+        playerYRot -= pDragY * 20;
         playerYRot = Math.max(playerYRot, -180);
         playerYRot = Math.min(playerYRot, 180);
-        return super.mouseDragged(p_94699_, p_94700_, p_94701_, p_94702_, p_94703_);
+        return super.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
     }
 
     private void setSelectedSkin(int newSelectedSkin) {
@@ -256,27 +247,30 @@ public class EmotionsMainScreen extends Screen {
         leftArrow.visible = players.size() > 1 && selectedSkin > 0;
     }
 
-    private void setModelNames(String modelName){
-        for (SkinPlayer player : players){
-            SkinSwapper.setModelNameFor(player, modelName);
-        }
-    }
-
     @Override
-    public boolean mouseClicked(double p_94695_, double p_94696_, int p_94697_) {
-        if (rightArrow.mouseClicked(p_94695_, p_94696_, p_94697_)) {
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        if (rightArrow.mouseClicked(pMouseX, pMouseY, pButton)) {
             setSelectedSkin(selectedSkin + 1);
             updateArrowButtons();
+            updateSlimCheckbox();
             return true;
-        } else if (leftArrow.mouseClicked(p_94695_, p_94696_, p_94697_)) {
+        } else if (leftArrow.mouseClicked(pMouseX, pMouseY, pButton)) {
             setSelectedSkin(selectedSkin - 1);
             updateArrowButtons();
+            updateSlimCheckbox();
             return true;
-        } else if (checkbox.mouseClicked(p_94695_, p_94696_, p_94697_)){
-            setModelNames(checkbox.selected() ? "slim" : "default");
+        } else if (checkbox.mouseClicked(pMouseX, pMouseY, pButton)){
+            SkinManager.setSlim(Objects.requireNonNull(SkinSwapper.getSkin(players.get(selectedSkin))), checkbox.selected());
             return true;
         }
-        return super.mouseClicked(p_94695_, p_94696_, p_94697_);
+        return super.mouseClicked(pMouseX, pMouseY, pButton);
+    }
+
+    private void updateSlimCheckbox() {
+        if(SkinSwapper.isSlim(players.get(selectedSkin)) ^ checkbox.selected()) {
+            checkbox.onPress();
+        }
+        checkbox.active = selectedSkin != 0;
     }
 
 }

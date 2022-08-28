@@ -6,8 +6,17 @@
   "emotions.screen.main.open_triggers_menu": "Déclencheurs",
   "key.categories.emotions": "Emotions",
   "key.emotions.main_gui_key": "Ouvrir le menu principal",
-  "trigger.emotions.sneaking": "Accroupi",
-  "trigger.emotions.sprinting": "Court",
+  "trigger.emotions.sneaking": "S'accroupir",
+  "trigger.emotions.sneaking.description": "Quand le joueur s'accroupit",
+  "trigger.emotions.not_sneaking.description": "Quand le joueur ne s'accroupit pas",
+  "trigger.emotions.sprinting": "Courir",
+  "trigger.emotions.sprinting.description": "Quand le joueur court",
+  "trigger.emotions.not_sprinting.description": "Quand le joueur ne court pas",
   "emotions.screen.triggers.new_trigger": "Nouveau déclencheur",
-  "emotions.screen.triggers.remove": "Supprimer"
+  "emotions.screen.triggers.remove": "Supprimer",
+  "emotions.screen.triggers.set_skin_to": "Définir le skin à",
+  "emotions.screen.triggers.invert": "Inverser le déclencheur",
+  "emotions.screen.triggers": "Menu des déclencheurs",
+  "emotions.triggers.disabled_line_1": "Ce déclencheur est désactivé car un autre du même type et inversion est déjà présent.",
+  "emotions.triggers.disabled_line_2": "Essayez d'inverser ou de supprimer le déclencheur du même type déjà existant."
 }

@@ -1,5 +1,7 @@
 package fr.mireole.emotions.client.player;
 
+import fr.mireole.emotions.api.skin.Skin;
+import fr.mireole.emotions.api.skin.SkinManager;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.resources.ResourceLocation;
@@ -9,14 +11,13 @@ import org.jetbrains.annotations.NotNull;
 
 @OnlyIn(Dist.CLIENT)
 public class EmotionsPlayerInfo extends PlayerInfo {
-    protected ResourceLocation skin;
-    protected String modelName;
-    protected boolean isDefaultSkin = true; // Used to prevent weird things like the player having a steve / alex skin instead of his default one sometimes.
+    protected Skin skin;
+    public final Skin defaultSkin;
 
-    public EmotionsPlayerInfo(ClientboundPlayerInfoPacket.PlayerUpdate p_105311_) {
-        super(p_105311_);
+    public EmotionsPlayerInfo(ClientboundPlayerInfoPacket.PlayerUpdate playerUpdate) {
+        super(playerUpdate);
         registerTextures();
-        modelName = super.getModelName();
+        defaultSkin = SkinManager.createSkin(super.getSkinLocation(), super.getModelName().equals("slim"), true);
         setSkinToDefault();
     }
 
@@ -27,46 +28,41 @@ public class EmotionsPlayerInfo extends PlayerInfo {
         setLastHealthTime(info.getLastHealthTime());
         setHealthBlinkTime(info.getHealthBlinkTime());
         setRenderVisibilityId(info.getRenderVisibilityId());
-        setSkin(info.getSkinLocation());
-        modelName = info.getModelName();
         registerTextures();
+        defaultSkin = SkinManager.createSkin(super.getSkinLocation(), super.getModelName().equals("slim"), true);
+        setSkinToDefault();
     }
 
 
     public void setSkinToDefault(){
-        if(!isDefaultSkin) {
-            setSkin(super.getSkinLocation());
-            isDefaultSkin = true;
-        }
+        skin = defaultSkin;
     }
 
-    public void setSkin(ResourceLocation skin) {
-        isDefaultSkin = false;
+    public void setSkin(Skin skin) {
         this.skin = skin;
     }
 
     @Override
     @NotNull
     public ResourceLocation getSkinLocation() {
-        return skin;
+        return skin.getLocation();
     }
 
     public boolean isDefault(ResourceLocation skin){
         return skin == super.getSkinLocation();
     }
 
-    public ResourceLocation getDefaultSkin(){
-        return super.getSkinLocation();
+    public Skin getDefaultSkin(){
+        return defaultSkin;
     }
 
     @Override
     @NotNull
     public String getModelName() {
-        return modelName;
+        return skin.isSlim() ? "slim" : "default";
     }
 
-    public void setModelName(String modelName){
-        this.modelName = modelName;
+    public Skin getSkin() {
+        return skin;
     }
-
 }

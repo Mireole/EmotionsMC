@@ -1,4 +1,4 @@
-package fr.mireole.emotions.client.texture;
+package fr.mireole.emotions.api.texture;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.TextureUtil;
@@ -18,7 +18,7 @@ public class SkinTexture extends AbstractTexture {
     }
 
     @Override
-    public void load(@NotNull ResourceManager p_117955_) {
+    public void load(@NotNull ResourceManager pResourceManager) {
         SkinImage skinImage = SkinImage.load(skinLocation);
         if(skinImage != null) {
             NativeImage nativeimage = skinImage.getImage();
