@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -20,6 +21,7 @@ public class Triggers {
     public static final Path TRIGGERS_PATH = Minecraft.getInstance().gameDirectory.toPath().resolve("skins/triggers.json");
     private static final ArrayList<Trigger> TRIGGERS = new ArrayList<>();
     private static final LinkedHashMap<Trigger, Action> ENABLED_TRIGGERS = new LinkedHashMap<>();
+    private static final LinkedList<Pair<LinkedList<Trigger>, Action>> NEW_ENABLED_TRIGGERS = new LinkedList<>(); //This mess allows duplicate and chained triggers
     public static final ArrayList<Trigger.Category> CATEGORIES = new ArrayList<>();
 
     public static void addDefaultTriggers() {

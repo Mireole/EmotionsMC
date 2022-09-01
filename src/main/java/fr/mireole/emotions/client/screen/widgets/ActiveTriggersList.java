@@ -42,7 +42,7 @@ public class ActiveTriggersList extends ContainerObjectSelectionList<ActiveTrigg
         children().forEach(Entry::tick);
     }
 
-    public class Entry extends ContainerObjectSelectionList.Entry<ActiveTriggersList.Entry> {
+    public class Entry extends ContainerObjectSelectionList.Entry<Entry> {
         private final Trigger trigger;
         private final Action action;
         private final Button removeButton;
@@ -68,7 +68,7 @@ public class ActiveTriggersList extends ContainerObjectSelectionList<ActiveTrigg
 
         @Override
         public void render(@NotNull PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
-            if (pTop + 25 < y0 || pTop - 25 + pHeight > y1) { // Prevents rendering outside the list (22: line height, total entry  height / 2): make this cleaner because it looks ugly in game
+            if (pTop + 25 < y0 || pTop - 25 + pHeight > y1) { // Prevents rendering outside the list
                 return;
             }
 
@@ -103,5 +103,80 @@ public class ActiveTriggersList extends ContainerObjectSelectionList<ActiveTrigg
         }
 
     }
+
+    public class TriggerEntry extends ContainerObjectSelectionList.Entry<TriggerEntry> {
+        private final Trigger trigger;
+        private final boolean chained;
+        private final Button removeButton;
+        private final ImageButton invertButton;
+        public TriggerEntry(Trigger trigger, boolean chained) {
+            this.trigger = trigger;
+            this.chained = chained;
+            removeButton = new Button(0, 0, screen.getFont().width(new TranslatableComponent("emotions.screen.triggers.remove")) + 8, 20, new TranslatableComponent("emotions.screen.triggers.remove"), (pButton) -> {
+                // Triggers.disableTrigger(this.trigger, this.action);
+                update();
+            });
+            invertButton = new ImageButton(0, 0, 20, 20, 0, 0, 20, INVERT_BUTTON, 32, 64, (pButton) -> {
+                this.trigger.invert();
+                update();
+            }, new TranslatableComponent("emotions.screen.triggers.invert"));
+        }
+
+
+
+        @Override
+        public @NotNull List<? extends NarratableEntry> narratables() {
+            return ImmutableList.of();
+        }
+
+        @Override
+        public void render(@NotNull PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+            if (chained) {
+                screen.getFont().draw(pPoseStack, trigger.getDescription(), pLeft - 30, pTop + (float) (removeButton.getHeight() - screen.getFont().lineHeight) / 2, 4210752); // Trigger name
+            }
+            else {
+                screen.getFont().draw(pPoseStack, new TranslatableComponent("emotions.screen.triggers.and"), pLeft - 32 - screen.getFont().width(trigger.getDescription()), pTop + (float) (removeButton.getHeight() - screen.getFont().lineHeight) / 2, 4210752); // "And"
+                screen.getFont().draw(pPoseStack, trigger.getDescription(), pLeft - 30, pTop + (float) (removeButton.getHeight() - screen.getFont().lineHeight) / 2, 4210752); // Trigger name
+            }
+
+            removeButton.x = screen.leftPos + screen.imageWidth - removeButton.getWidth() - 72;
+            removeButton.y = pTop;
+            removeButton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+
+            invertButton.x = screen.leftPos + screen.imageWidth - removeButton.getWidth() - 94;
+            invertButton.y = pTop;
+            invertButton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        }
+
+        @Override
+        public @NotNull List<? extends GuiEventListener> children() {
+            return ImmutableList.of(removeButton, invertButton);
+        }
+    }
+
+    public class ActionEntry extends ContainerObjectSelectionList.Entry<ActionEntry> {
+        private final Action action;
+
+        public ActionEntry(Action action) {
+            this.action = action;
+        }
+
+        @Override
+        public @NotNull List<? extends NarratableEntry> narratables() {
+            return ImmutableList.of();
+        }
+
+        @Override
+        public void render(@NotNull PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+            action.setComponentPos(screen, pIndex, pLeft, pTop, pWidth, pHeight);
+            action.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        }
+
+        @Override
+        public @NotNull List<? extends GuiEventListener> children() {
+            return ImmutableList.of();
+        }
+    }
+
 
 }

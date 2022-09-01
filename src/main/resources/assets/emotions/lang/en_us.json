@@ -18,5 +18,6 @@
   "emotions.screen.triggers.invert": "Invert trigger",
   "emotions.screen.triggers": "Triggers screen",
   "emotions.triggers.disabled_line_1": "This trigger is disabled because another one of the same type and inversion is present.",
-  "emotions.triggers.disabled_line_2": "Try inverting or removing the already existing one."
+  "emotions.triggers.disabled_line_2": "Try inverting or removing the already existing one.",
+  "emotions.screen.triggers.and": "And"
 }
