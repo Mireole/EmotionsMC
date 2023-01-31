@@ -1,26 +1,26 @@
-modLoader="javafml"
-loaderVersion="[39,)"
-license="MIT"
+modLoader = "javafml"
+loaderVersion = "[39,)"
+license = "MIT"
 #issueTrackerURL="http://my.issue.tracker/"
 
 [[mods]]
-modId="emotions"
-version="${file.jarVersion}"
-authors="Mireole"
-description='''
+modId = "emotions"
+version = "${file.jarVersion}"
+authors = "Mireole"
+description = '''
 A mod that allows the player to change his skin using an in-game GUI, with configurable triggers and even more !
 '''
 
 [[dependencies.emotions]]
-modId="forge"
-mandatory=true
-versionRange="[39,)"
-ordering="NONE"
-side="BOTH"
+modId = "forge"
+mandatory = true
+versionRange = "[39,)"
+ordering = "NONE"
+side = "BOTH"
 
 [[dependencies.emotions]]
-modId="minecraft"
-mandatory=true
-versionRange="[1.18.1,1.19)"
-ordering="NONE"
-side="BOTH"
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.18.1,1.19)"
+ordering = "NONE"
+side = "BOTH"

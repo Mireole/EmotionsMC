@@ -19,10 +19,10 @@ import java.util.UUID;
 public class PlayerEvents {
 
     @SubscribeEvent
-    public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event){
-        if(!event.getPlayer().level.isClientSide){
+    public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!event.getPlayer().level.isClientSide) {
             File file = new File("skins/downloaded");
-            if(file.exists()){
+            if (file.exists()) {
                 for (File file1 : Objects.requireNonNull(file.listFiles())) {
                     try {
                         String name = file1.getName().replace(".png", "");
@@ -30,14 +30,13 @@ public class PlayerEvents {
                         if (player != null) {
                             EmotionsNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) event.getPlayer()), new SkinPacket(file1.getName(), file1.toPath(), player.getUUID()));
                         }
-                    }
-                    catch (IllegalArgumentException ignored) {
+                    } catch (IllegalArgumentException ignored) {
 
                     }
                 }
             }
             File file2 = new File(event.getPlayer().getUUID() + ".png");
-            if(file2.exists()){
+            if (file2.exists()) {
                 Objects.requireNonNull(event.getPlayer().getServer()).getPlayerList().broadcastAll(
                         EmotionsNetwork.CHANNEL.toVanillaPacket(new SkinPacket(file2.getName(), file2.toPath(), event.getPlayer().getUUID()), NetworkDirection.PLAY_TO_CLIENT)
                 );
@@ -48,13 +47,13 @@ public class PlayerEvents {
     }
 
     @SubscribeEvent
-    public static void startTracking(PlayerEvent.StartTracking event){
-        if(!event.getPlayer().level.isClientSide() && event.getTarget() instanceof Player player){
-            if(player.getUUID().equals(event.getPlayer().getUUID())){
+    public static void startTracking(PlayerEvent.StartTracking event) {
+        if (!event.getPlayer().level.isClientSide() && event.getTarget() instanceof Player player) {
+            if (player.getUUID().equals(event.getPlayer().getUUID())) {
                 return;
             }
             File file = new File("skins/downloaded/" + player.getUUID() + ".png");
-            if(file.exists()){
+            if (file.exists()) {
                 EmotionsNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) event.getPlayer()), new SkinPacket(file.getName(), file.toPath(), player.getUUID()));
             }
         }

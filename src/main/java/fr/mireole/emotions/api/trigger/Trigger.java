@@ -1,54 +1,33 @@
 package fr.mireole.emotions.api.trigger;
 
-import fr.mireole.emotions.Emotions;
-import net.minecraft.network.chat.TranslatableComponent;
+import com.google.gson.JsonObject;
+import fr.mireole.emotions.api.TriggersActionPair;
+import fr.mireole.emotions.client.screen.widgets.ActiveTriggersList;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
-import java.util.Objects;
-import java.util.function.Supplier;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = Emotions.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
-public class Trigger implements Serializable {
-    private final String name;
-    private final Category category;
-    private final Supplier<Boolean> condition;
-    private final TranslatableComponent translatableName;
-    private TranslatableComponent description;
-    private boolean inverted;
+@OnlyIn(Dist.CLIENT)
+public abstract class Trigger implements Serializable {
+    // Used for serialization / deserialization
+    @SuppressWarnings({"FieldCanBeLocal", "unused"})
+    private final String className;
+    protected boolean inverted;
 
-    public Trigger(String name, Category category, Supplier<Boolean> callable) {
-        this(name, category, callable, new TranslatableComponent("trigger.emotions." + name), new TranslatableComponent("trigger.emotions." + name + ".description"));
+    protected Trigger() {
+        className = this.getClass().getName();
     }
 
-    public Trigger(String name, Category category, Supplier<Boolean> callable, TranslatableComponent translatableName, TranslatableComponent description) {
-        this.name = name;
-        this.category = category;
-        this.condition = callable;
-        this.translatableName = translatableName;
-        this.description = description;
-    }
+    public abstract boolean isActive();
 
-    public boolean isActive() {
-        return condition.get() ^ inverted;
-    }
+    public abstract String getName();
 
-    public String getName() {
-        return name;
-    }
+    public abstract Component getTranslatableName();
 
-    public Category getCategory() {
-        return category;
-    }
-
-    public TranslatableComponent getTranslatableName() {
-        return translatableName;
-    }
-
-    public TranslatableComponent getDescription() {
-        return description;
-    }
+    public abstract Component getDescription();
 
     public boolean isInverted() {
         return inverted;
@@ -60,37 +39,24 @@ public class Trigger implements Serializable {
 
     public void setInverted(boolean inverted) {
         this.inverted = inverted;
-        this.description = new TranslatableComponent("trigger.emotions." + (inverted ? "not_" : "") + name + ".description");
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Trigger trigger = (Trigger) o;
-        return isInverted() == trigger.isInverted() && name.equals(trigger.name);
-    }
+    public abstract @NotNull Trigger copy();
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, isInverted());
-    }
+    public abstract ActiveTriggersList.Entry getNewEntry(ActiveTriggersList activeTriggersList, TriggersActionPair pair, boolean chained);
 
-    @Override
-    public String toString() {
-        return name + ":" + (isInverted() ? "inverted" : "normal");
-    }
-
-    public Trigger copy() {
-        return new Trigger(name, category, condition, translatableName, description);
-    }
-
-    public record Category(String name) {
-
-        public String getName() {
-            return name;
-        }
-
+    /*
+        * Deserialize a trigger from a JsonObject, called on trigger loading
+        @param json the JsonObject to deserialize
+        @return the new trigger
+     */
+    @SuppressWarnings("unused")
+    public static Trigger deserialize(JsonObject json) {
+        Trigger foundTrigger = Triggers.getTriggerByName(json.get("name").getAsString());
+        if (foundTrigger == null) return null;
+        Trigger trigger = foundTrigger.copy();
+        trigger.setInverted(json.get("inverted").getAsBoolean());
+        return trigger;
     }
 
 }

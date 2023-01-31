@@ -15,7 +15,7 @@ public class Skin {
     private boolean registered;
     private ResourceLocation skinLocation;
 
-    public Skin(SkinTexture texture, boolean slim){
+    public Skin(SkinTexture texture, boolean slim) {
         this.texture = texture;
         this.slim = slim;
         String path = texture.getSkinLocation().getPath();
@@ -24,7 +24,7 @@ public class Skin {
         this.skinLocation = texture.getSkinLocation();
     }
 
-    public Skin(ResourceLocation location, boolean slim){
+    public Skin(ResourceLocation location, boolean slim) {
         this.texture = Minecraft.getInstance().getTextureManager().getTexture(location);
         registered = true;
         this.slim = slim;
@@ -35,7 +35,7 @@ public class Skin {
     }
 
     public void register() {
-        if(!registered) {
+        if (!registered) {
             Minecraft.getInstance().getTextureManager().register(location, texture);
             registered = true;
         }

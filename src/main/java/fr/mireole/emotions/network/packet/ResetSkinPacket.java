@@ -1,7 +1,7 @@
 package fr.mireole.emotions.network.packet;
 
 import fr.mireole.emotions.Emotions;
-import fr.mireole.emotions.api.skin.SkinSwapper;
+import fr.mireole.emotions.api.skin.SkinManager;
 import fr.mireole.emotions.network.EmotionsNetwork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -35,13 +35,13 @@ public record ResetSkinPacket(UUID player) {
                     ClientLevel level = Minecraft.getInstance().level;
                     if (level != null) {
                         Player player = level.getPlayerByUUID(packet.player);
-                        SkinSwapper.resetSkinFor(player);
+                        SkinManager.resetSkinFor(player);
                     }
                 }
                 case PLAY_TO_SERVER -> {
                     ServerPlayer sender = context.getSender();
                     if (sender != null) {
-                        Path path = Path.of("skins/downloaded/"+sender.getUUID()+".png");
+                        Path path = Path.of("skins/downloaded/" + sender.getUUID() + ".png");
                         try {
                             Files.deleteIfExists(path);
                         } catch (IOException e) {

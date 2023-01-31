@@ -5,7 +5,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import fr.mireole.emotions.Emotions;
 import fr.mireole.emotions.api.skin.Skin;
 import fr.mireole.emotions.api.skin.SkinManager;
-import fr.mireole.emotions.api.skin.SkinSwapper;
 import fr.mireole.emotions.client.screen.TriggersScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -60,6 +59,7 @@ public class SkinAction extends Action {
             editBox.setValue(getSkinName().replace(".png", ""));
         }
     }
+
     public SkinAction(String skinName) {
         this();
         this.skinName = skinName;
@@ -88,11 +88,11 @@ public class SkinAction extends Action {
 
     @Override
     public void setComponentPos(TriggersScreen screen, int index, int left, int top, int width, int height) {
-        if (editBox.getValue().equals("") && skinName != null && !skinName.equals("")){
+        if (editBox.getValue().equals("") && skinName != null && !skinName.equals("")) {
             editBox.setValue(skinName);
         }
         editBox.x = left + font.width(new TranslatableComponent("emotions.screen.triggers.set_skin_to")) - 26;
-        editBox.y = top + 22;
+        editBox.y = top;
         editBox.setWidth(screen.leftPos + screen.imageWidth - 66 - left - font.width(new TranslatableComponent("emotions.screen.triggers.set_skin_to")));
         this.left = left;
         this.top = top;
@@ -103,19 +103,19 @@ public class SkinAction extends Action {
         LocalPlayer player = Minecraft.getInstance().player;
         assert player != null;
         if (getSkinName().equals("default")) {
-            SkinSwapper.resetSkinFor(player);
-            SkinSwapper.resetSkinForServer();
+            SkinManager.resetSkinFor(player);
+            SkinManager.resetSkinForServer();
         } else {
             Skin skin = getSkin();
             assert skin != null;
-            SkinSwapper.setSkinFor(player, skin);
-            SkinSwapper.sendSkinToServer(skin);
+            SkinManager.setSkinFor(player, skin);
+            SkinManager.sendSkinToServer(skin);
         }
     }
 
     @Override
     public void render(@NotNull PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
-        font.draw(pPoseStack, new TranslatableComponent("emotions.screen.triggers.set_skin_to"), left - 30, top + 22 + (float) (22 - font.lineHeight) / 2, 4210752); // "Set skin to" or its translation
+        font.draw(pPoseStack, new TranslatableComponent("emotions.screen.triggers.set_skin_to"), left - 30, top + (float) (22 - font.lineHeight) / 2, 4210752); // "Set skin to" or its translation
 
         editBox.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
 
@@ -123,13 +123,13 @@ public class SkinAction extends Action {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         if (isValid()) {
-            Skin skin = getSkinName().equals("default") ? SkinSwapper.getDefaultSkin(Minecraft.getInstance().player) : getSkin();
+            Skin skin = getSkinName().equals("default") ? SkinManager.getDefaultSkin(Minecraft.getInstance().player) : getSkin();
             assert skin != null;
             RenderSystem.setShaderTexture(0, skin.getLocation());
-            GuiComponent.blit(pPoseStack, editBox.x + editBox.getWidth() + 4, top + 24, 16, 16, 8, 8, 8, 8, 64, 64);
+            GuiComponent.blit(pPoseStack, editBox.x + editBox.getWidth() + 4, top + 2, 16, 16, 8, 8, 8, 8, 64, 64);
         } else {
             RenderSystem.setShaderTexture(0, UNKNOWN_SKIN);
-            GuiComponent.blit(pPoseStack, editBox.x + editBox.getWidth() + 4, top + 24, 16, 16, 0, 0, 8, 8, 8, 8);
+            GuiComponent.blit(pPoseStack, editBox.x + editBox.getWidth() + 4, top + 2, 16, 16, 0, 0, 8, 8, 8, 8);
         }
     }
 
@@ -149,7 +149,7 @@ public class SkinAction extends Action {
     }
 
     @Override
-    public void tick(){
+    public void tick() {
         editBox.tick();
     }
 

@@ -1,6 +1,6 @@
 package fr.mireole.emotions.network.packet;
 
-import fr.mireole.emotions.api.skin.SkinSwapper;
+import fr.mireole.emotions.api.skin.SkinManager;
 import fr.mireole.emotions.network.EmotionsNetwork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -32,7 +32,7 @@ public record SlimPacket(UUID playerUUID, boolean slim) {
                     ClientLevel level = Minecraft.getInstance().level;
                     if (level != null) {
                         Player player = level.getPlayerByUUID(packet.playerUUID);
-                        SkinSwapper.setSlim(player, packet.slim);
+                        SkinManager.setSlim(player, packet.slim);
                     }
                 }
                 case PLAY_TO_SERVER -> {
