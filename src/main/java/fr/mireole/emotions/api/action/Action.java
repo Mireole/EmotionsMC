@@ -11,7 +11,7 @@ public abstract class Action implements Widget, GuiEventListener, Serializable {
     @SuppressWarnings({"FieldCanBeLocal", "unused"})
     private final String className;
 
-    public Action(){
+    public Action() {
         className = this.getClass().getName();
     }
 

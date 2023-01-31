@@ -21,7 +21,7 @@ public class EmotionsPlayerInfo extends PlayerInfo {
         setSkinToDefault();
     }
 
-    public EmotionsPlayerInfo(PlayerInfo info){
+    public EmotionsPlayerInfo(PlayerInfo info) {
         super(new ClientboundPlayerInfoPacket.PlayerUpdate(info.getProfile(), info.getLatency(), info.getGameMode(), info.getTabListDisplayName()));
         setLastHealth(info.getLastHealth());
         setDisplayHealth(info.getDisplayHealth());
@@ -34,7 +34,7 @@ public class EmotionsPlayerInfo extends PlayerInfo {
     }
 
 
-    public void setSkinToDefault(){
+    public void setSkinToDefault() {
         skin = defaultSkin;
     }
 
@@ -48,11 +48,8 @@ public class EmotionsPlayerInfo extends PlayerInfo {
         return skin.getLocation();
     }
 
-    public boolean isDefault(ResourceLocation skin){
-        return skin == super.getSkinLocation();
-    }
 
-    public Skin getDefaultSkin(){
+    public Skin getDefaultSkin() {
         return defaultSkin;
     }
 

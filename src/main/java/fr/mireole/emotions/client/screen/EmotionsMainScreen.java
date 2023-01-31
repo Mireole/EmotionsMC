@@ -8,7 +8,6 @@ import com.mojang.math.Vector3f;
 import fr.mireole.emotions.Emotions;
 import fr.mireole.emotions.api.skin.Skin;
 import fr.mireole.emotions.api.skin.SkinManager;
-import fr.mireole.emotions.api.skin.SkinSwapper;
 import fr.mireole.emotions.client.player.SkinPlayer;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -67,20 +66,19 @@ public class EmotionsMainScreen extends Screen {
                 20,
                 new TranslatableComponent("emotions.screen.main.select"),
                 (button) -> {
-                    if(selectedSkin == 0){
-                        SkinSwapper.resetSkinForServer();
-                    }
-                    else {
-                        Skin skin = SkinSwapper.getSkin(players.get(selectedSkin));
+                    if (selectedSkin == 0) {
+                        SkinManager.resetSkinForServer();
+                    } else {
+                        Skin skin = SkinManager.getSkin(players.get(selectedSkin));
                         if (skin != null) {
-                            SkinSwapper.sendSkinToServer(skin);
-                            SkinSwapper.setSkinFor(minecraft.player, skin);
+                            SkinManager.sendSkinToServer(skin);
+                            SkinManager.setSkinFor(minecraft.player, skin);
                         }
                     }
-                    SkinSwapper.sendSlimPacket(checkbox.selected());
+                    SkinManager.sendSlimPacket(checkbox.selected());
 
                     onClose();
-        }));
+                }));
         addRenderableWidget(new Button(leftPos + 1,
                 topPos + imageHeight - 21,
                 font.width(new TranslatableComponent("emotions.screen.main.open_skins_folder")) + 8,
@@ -95,7 +93,7 @@ public class EmotionsMainScreen extends Screen {
                 (button) -> minecraft.setScreen(new TriggersScreen())
         ));
         TranslatableComponent component = new TranslatableComponent("emotions.screen.main.slim_checkbox");
-        checkbox = new Checkbox(leftPos+1, topPos+1, font.width(component.getVisualOrderText())+20, 20, component, minecraft.player.getModelName().equals("slim"));
+        checkbox = new Checkbox(leftPos + 1, topPos + 1, font.width(component.getVisualOrderText()) + 20, 20, component, minecraft.player.getModelName().equals("slim"));
         addRenderableWidget(checkbox);
         generatePlayers();
         playerXRot = -90;
@@ -105,13 +103,13 @@ public class EmotionsMainScreen extends Screen {
         updateSlimCheckbox();
     }
 
-    public void generatePlayers(){
+    public void generatePlayers() {
         assert minecraft != null && minecraft.player != null;
         players.clear();
         LocalPlayer localPlayer = minecraft.player;
         int i = 0;
-        for(PlayerModelPart part : PlayerModelPart.values()){
-            if(minecraft.options.isModelPartEnabled(part) && part != PlayerModelPart.CAPE){
+        for (PlayerModelPart part : PlayerModelPart.values()) {
+            if (minecraft.options.isModelPartEnabled(part) && part != PlayerModelPart.CAPE) {
                 i |= part.getMask();
             }
         }
@@ -127,14 +125,8 @@ public class EmotionsMainScreen extends Screen {
 
     private int getActiveSkin() {
         assert minecraft != null;
-        Skin skin = SkinSwapper.getSkin(minecraft.player);
-        assert skin != null;
-        for(Skin skin1 : SkinManager.getSkins()){
-            if(skin1.getLocation().equals(skin.getLocation())){
-                return SkinManager.getSkins().indexOf(skin1) + 1;
-            }
-        }
-        return 0;
+        Skin skinName = SkinManager.getCurrentSkin();
+        return SkinManager.getSkins().indexOf(skinName) + 1; // +1 because of the default skin
     }
 
     @Override
@@ -154,11 +146,11 @@ public class EmotionsMainScreen extends Screen {
         this.blit(poseStack, leftPos, topPos, 0, 0, imageWidth, imageHeight);
         renderLabels();
         renderPlayer(leftPos + 200, topPos + 160, 60, playerXRot, playerYRot, players.get(selectedSkin));
-        if(selectedSkin + 1 < players.size()){
+        if (selectedSkin + 1 < players.size()) {
             renderPlayer(leftPos + 300, topPos + 130, 30, playerXRot, playerYRot, players.get(selectedSkin + 1));
         }
-        if(selectedSkin > 0){
-            renderPlayer(leftPos + 100, topPos + 130, 30, playerXRot, playerYRot, players.get(selectedSkin-1));
+        if (selectedSkin > 0) {
+            renderPlayer(leftPos + 100, topPos + 130, 30, playerXRot, playerYRot, players.get(selectedSkin - 1));
         }
     }
 
@@ -259,15 +251,15 @@ public class EmotionsMainScreen extends Screen {
             updateArrowButtons();
             updateSlimCheckbox();
             return true;
-        } else if (checkbox.mouseClicked(pMouseX, pMouseY, pButton)){
-            SkinManager.setSlim(Objects.requireNonNull(SkinSwapper.getSkin(players.get(selectedSkin))), checkbox.selected());
+        } else if (checkbox.mouseClicked(pMouseX, pMouseY, pButton)) {
+            SkinManager.setSlim(Objects.requireNonNull(SkinManager.getSkin(players.get(selectedSkin))), checkbox.selected());
             return true;
         }
         return super.mouseClicked(pMouseX, pMouseY, pButton);
     }
 
     private void updateSlimCheckbox() {
-        if(SkinSwapper.isSlim(players.get(selectedSkin)) ^ checkbox.selected()) {
+        if (SkinManager.isSlim(players.get(selectedSkin)) ^ checkbox.selected()) {
             checkbox.onPress();
         }
         checkbox.active = selectedSkin != 0;

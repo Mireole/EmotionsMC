@@ -1,23 +1,93 @@
 {
-  "emotions.screen.main" : "Emotions' main screen",
-  "emotions.screen.main.select" : "Select skin",
-  "emotions.screen.main.slim_checkbox" : "Slim",
-  "emotions.screen.main.open_skins_folder" : "Open skins folder",
-  "emotions.screen.main.open_triggers_menu" : "Triggers",
-  "key.categories.emotions" : "Emotions",
-  "key.emotions.main_gui_key" : "Open main GUI",
-  "trigger.emotions.sneaking" : "Sneaking",
-  "trigger.emotions.sneaking.description" : "When the player sneaks",
-  "trigger.emotions.not_sneaking.description" : "When the player doesn't sneak",
-  "trigger.emotions.sprinting" : "Sprinting",
-  "trigger.emotions.sprinting.description" : "When the player sprints",
-  "trigger.emotions.not_sprinting.description" : "When the player doesn't sprint",
-  "emotions.screen.triggers.new_trigger" : "New trigger",
-  "emotions.screen.triggers.remove" : "Remove",
-  "emotions.screen.triggers.set_skin_to" : "Set skin to",
+  "emotions.screen.main": "Emotions' main screen",
+  "emotions.screen.main.select": "Select skin",
+  "emotions.screen.main.slim_checkbox": "Slim",
+  "emotions.screen.main.open_skins_folder": "Open skins folder",
+  "emotions.screen.main.open_triggers_menu": "Triggers",
+
+  "trigger.emotions.sneaking": "Sneaking",
+  "trigger.emotions.sneaking.description": "If the player sneaks",
+  "trigger.emotions.not_sneaking.description": "If the player does not sneak",
+
+  "trigger.emotions.sprinting": "Sprinting",
+  "trigger.emotions.sprinting.description": "If the player sprints",
+  "trigger.emotions.not_sprinting.description": "If the player does not sprint",
+
+  "trigger.emotions.key_pressed": "Trigger key pressed",
+  "trigger.emotions.key_pressed.description": "If the %s is pressed",
+  "trigger.emotions.not_key_pressed.description": "If the %s is not pressed",
+
+  "trigger.emotions.skin_used": "Skin used",
+  "trigger.emotions.skin_used.description": "If the current skin is %s",
+  "trigger.emotions.not_skin_used.description": "If the current skin is not %s",
+
+  "trigger.emotions.on_ground": "Standing on the ground",
+  "trigger.emotions.on_ground.description": "If the player is standing on the ground",
+  "trigger.emotions.not_on_ground.description": "If the player is not standing on the ground",
+
+  "trigger.emotions.dead": "Dead or dying",
+  "trigger.emotions.dead.description": "If the player is dead or dying",
+  "trigger.emotions.not_dead.description": "If the player is not dead or dying",
+  
+  
+  "trigger.emotions.in_water": "Inside water",
+  "trigger.emotions.in_water.description": "If the player is inside water",
+  "trigger.emotions.not_in_water.description": "If the player is not inside water",
+  
+  
+  "trigger.emotions.in_lava": "Inside lava",
+  "trigger.emotions.in_lava.description": "If the player is inside lava",
+  "trigger.emotions.not_in_lava.description": "If the player is not inside lava",
+  
+  
+  "trigger.emotions.burning": "Burning",
+  "trigger.emotions.burning.description": "If the player is burning",
+  "trigger.emotions.not_burning.description": "If the player is not burning",
+  
+  
+  "trigger.emotions.swimming": "Swimming",
+  "trigger.emotions.swimming.description": "If the player is swimming",
+  "trigger.emotions.not_swimming.description": "If the player is not swimming",
+  
+  "trigger.emotions.elytra_flying": "Flying with elytra",
+  "trigger.emotions.elytra_flying.description": "If the player is flying with elytra",
+  "trigger.emotions.not_elytra_flying.description": "If the player is not flying with elytra",
+  
+  "trigger.emotions.freezing": "Freezing",
+  "trigger.emotions.freezing.description": "If the player is freezing",
+  "trigger.emotions.not_freezing.description": "If the player is not freezing",
+  
+  "trigger.emotions.sleeping": "Sleeping",
+  "trigger.emotions.sleeping.description": "If the player is sleeping",
+  "trigger.emotions.not_sleeping.description": "If the player is not sleeping",
+  
+  "trigger.emotions.passenger": "Riding an entity",
+  "trigger.emotions.passenger.description": "If the player is riding an entity",
+  "trigger.emotions.not_passenger.description": "If the player is not riding an entity",
+  
+  "trigger.emotions.crawling": "Crawling",
+  "trigger.emotions.crawling.description": "If the player is crawling",
+  "trigger.emotions.not_crawling.description": "If the player is not crawling",
+
+  "emotions.screen.triggers.new_trigger": "New trigger",
+  "emotions.screen.triggers.remove": "Remove",
+  "emotions.screen.triggers.set_skin_to": "Set skin to",
   "emotions.screen.triggers.invert": "Invert trigger",
+  "emotions.screen.triggers.cycle_key": "Cycle key",
+  "emotions.screen.triggers.cycle_skin": "Cycle skin",
   "emotions.screen.triggers": "Triggers screen",
-  "emotions.triggers.disabled_line_1": "This trigger is disabled because another one of the same type and inversion is present.",
-  "emotions.triggers.disabled_line_2": "Try inverting or removing the already existing one.",
-  "emotions.screen.triggers.and": "And"
+  "emotions.screen.triggers.and": "And %s",
+  "key.categories.emotions": "Emotions",
+  "key.emotions.main_gui_key": "Open main GUI",
+  "key.emotions.trigger_key_0": "trigger key 1",
+  "key.emotions.trigger_key_1": "trigger key 2",
+  "key.emotions.trigger_key_2": "trigger key 3",
+  "key.emotions.trigger_key_3": "trigger key 4",
+  "key.emotions.trigger_key_4": "trigger key 5",
+  "key.emotions.trigger_key_5": "trigger key 6",
+  "key.emotions.trigger_key_6": "trigger key 7",
+  "key.emotions.trigger_key_7": "trigger key 8",
+  "key.emotions.trigger_key_8": "trigger key 9",
+  "key.emotions.trigger_key_9": "trigger key 10",
+  "emotions.screen.triggers.add": "Add trigger"
 }

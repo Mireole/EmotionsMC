@@ -2,36 +2,52 @@ package fr.mireole.emotions.api.trigger;
 
 import com.google.gson.*;
 import fr.mireole.emotions.Emotions;
+import fr.mireole.emotions.api.TriggersActionPair;
 import fr.mireole.emotions.api.action.Action;
 import fr.mireole.emotions.api.action.ActionDeserializer;
+import fr.mireole.emotions.client.EmotionsClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
 
 @OnlyIn(Dist.CLIENT)
 public class Triggers {
     public static final Path TRIGGERS_PATH = Minecraft.getInstance().gameDirectory.toPath().resolve("skins/triggers.json");
     private static final ArrayList<Trigger> TRIGGERS = new ArrayList<>();
-    private static final LinkedHashMap<Trigger, Action> ENABLED_TRIGGERS = new LinkedHashMap<>();
-    private static final LinkedList<Pair<LinkedList<Trigger>, Action>> NEW_ENABLED_TRIGGERS = new LinkedList<>(); //This mess allows duplicate and chained triggers
-    public static final ArrayList<Trigger.Category> CATEGORIES = new ArrayList<>();
+    private static final LinkedList<TriggersActionPair> ENABLED_TRIGGERS = new LinkedList<>();
 
     public static void addDefaultTriggers() {
         assert Minecraft.getInstance().player != null;
-        addTrigger(new Trigger("sneaking", Categories.MOVEMENT, () -> Minecraft.getInstance().player.isCrouching()));
-        addTrigger(new Trigger("sprinting", Categories.MOVEMENT, () -> Minecraft.getInstance().player.isSprinting()));
+        addTrigger(new ConditionTrigger("sneaking", () -> Minecraft.getInstance().player.isCrouching()));
+        addTrigger(new ConditionTrigger("sprinting", () -> Minecraft.getInstance().player.isSprinting()));
+        addTrigger(new ConditionTrigger("on_ground", () -> Minecraft.getInstance().player.isOnGround()));
+        addTrigger(new ConditionTrigger("dead", () -> Minecraft.getInstance().player.isDeadOrDying()));
+        addTrigger(new ConditionTrigger("in_water", () -> Minecraft.getInstance().player.isInWater()));
+        addTrigger(new ConditionTrigger("in_lava", () -> Minecraft.getInstance().player.isInLava()));
+        addTrigger(new ConditionTrigger("burning", () -> Minecraft.getInstance().player.isOnFire()));
+        addTrigger(new ConditionTrigger("swimming", () -> Minecraft.getInstance().player.isSwimming()));
+        addTrigger(new ConditionTrigger("elytra_flying", () -> Minecraft.getInstance().player.isFallFlying()));
+        addTrigger(new ConditionTrigger("freezing", () -> Minecraft.getInstance().player.isFreezing()));
+        addTrigger(new ConditionTrigger("sleeping", () -> Minecraft.getInstance().player.isSleeping()));
+        addTrigger(new ConditionTrigger("passenger", () -> Minecraft.getInstance().player.isPassenger()));
+        addTrigger(new ConditionTrigger("crawling", () -> Minecraft.getInstance().player.isVisuallyCrawling()));
+        addTrigger(new SkinTrigger());
+        if (EmotionsClientConfig.keyboundTriggers.get() > 0) {
+            addTrigger(new KeyTrigger());
+        }
     }
 
     /**
      * Add a trigger to the list of available triggers
+     *
      * @param trigger The trigger that will be added to the list
      */
     public static void addTrigger(Trigger trigger) {
@@ -51,58 +67,25 @@ public class Triggers {
         return null;
     }
 
-    public static Trigger.Category addCategory(Trigger.Category category) {
-        CATEGORIES.add(category);
-        return category;
-    }
-
-    public static Trigger.Category getCategory(String name) {
-        for (Trigger.Category category : CATEGORIES) {
-            if (category.getName().equals(name)) {
-                return category;
-            }
-        }
-        return null;
-    }
-
-    public static Trigger.Category getCategory(int id) {
-        return CATEGORIES.get(id);
-    }
-
-    public static void removeCategory(Trigger.Category category) {
-        CATEGORIES.remove(category);
-    }
-
-    public static List<Trigger> getTriggersByCategory(Trigger.Category category) {
-        List<Trigger> triggers = new ArrayList<>();
-        for (Trigger trigger : TRIGGERS) {
-            if (trigger.getCategory() == category) {
-                triggers.add(trigger);
-            }
-        }
-        return triggers;
-    }
 
     public static ArrayList<Trigger> getTriggers() {
         return TRIGGERS;
     }
 
-    public static LinkedHashMap<Trigger, Action> getEnabledTriggers() {
+    public static LinkedList<TriggersActionPair> getEnabledTriggers() {
         return ENABLED_TRIGGERS;
     }
 
     public static void enableTrigger(Trigger trigger, Action action) {
-        ENABLED_TRIGGERS.put(trigger.copy(), action);
+        ENABLED_TRIGGERS.add(new TriggersActionPair(trigger.copy(), action));
     }
 
-    public static void enableTrigger(Trigger trigger, Action action, boolean inverted) {
-        Trigger newTrigger = trigger.copy();
-        newTrigger.setInverted(inverted);
-        ENABLED_TRIGGERS.put(newTrigger, action);
+    public static void enableTrigger(TriggersActionPair pair) {
+        ENABLED_TRIGGERS.add(pair);
     }
 
-    public static void disableTrigger(Trigger trigger, Action action) {
-        ENABLED_TRIGGERS.remove(trigger, action);
+    public static void disableTrigger(TriggersActionPair pair) {
+        ENABLED_TRIGGERS.remove(pair);
     }
 
     public static void saveEnabledTriggers() {
@@ -116,9 +99,10 @@ public class Triggers {
         }
     }
 
-    public static void loadEnabledTriggers(){
+    public static void loadEnabledTriggers() {
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(Action.class, new ActionDeserializer());
+        builder.registerTypeAdapter(Trigger.class, new TriggerDeserializer());
         Gson gson = builder.create();
         if (!TRIGGERS_PATH.toFile().exists()) {
             try {
@@ -131,22 +115,22 @@ public class Triggers {
         ENABLED_TRIGGERS.clear();
         try {
             String json = FileUtils.readFileToString(TRIGGERS_PATH.toFile(), (Charset) null);
-            JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
-            for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
-                String[] split = entry.getKey().split(":"); // Splits the trigger's name (index 0) and its inversion (index 1)
-                Trigger trigger = getTriggerByName(split[0]);
-                Action action1 = gson.fromJson(entry.getValue(), Action.class);
-                if (trigger != null) {
-                    enableTrigger(trigger, action1, split[1].equals("inverted"));
-                }
-            }
-        } catch (IOException | IllegalStateException | JsonSyntaxException | NullPointerException | ArrayIndexOutOfBoundsException e) {
+            JsonArray jsonArray = gson.fromJson(json, JsonArray.class);
+            jsonArray.forEach(jsonElement -> {
+                JsonObject jsonObject = jsonElement.getAsJsonObject();
+                JsonArray triggers = jsonObject.getAsJsonArray("triggers");
+                LinkedList<Trigger> triggerList = new LinkedList<>();
+                triggers.forEach(trigger -> {
+                    Trigger trigger1 = gson.fromJson(trigger, Trigger.class);
+                    triggerList.add(trigger1);
+                });
+                Action action = gson.fromJson(jsonObject.get("action"), Action.class);
+                enableTrigger(new TriggersActionPair(triggerList, action));
+            });
+        } catch (IOException | IllegalStateException | JsonSyntaxException | NullPointerException |
+                 ArrayIndexOutOfBoundsException e) {
             Emotions.LOGGER.error("Could not load triggers", e);
         }
-    }
-
-    public static class Categories {
-        public static final Trigger.Category MOVEMENT = new Trigger.Category("movement");
     }
 
 }

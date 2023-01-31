@@ -1,9 +1,9 @@
 package fr.mireole.emotions.network;
 
 import fr.mireole.emotions.Emotions;
-import fr.mireole.emotions.network.packet.SlimPacket;
 import fr.mireole.emotions.network.packet.ResetSkinPacket;
 import fr.mireole.emotions.network.packet.SkinPacket;
+import fr.mireole.emotions.network.packet.SlimPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
@@ -20,7 +20,7 @@ public class EmotionsNetwork {
             PROTOCOL_VERSION::equals,
             PROTOCOL_VERSION::equals);
 
-    public static void init(){
+    public static void init() {
         CHANNEL.registerMessage(0, SkinPacket.class,
                 SkinPacket::encode,
                 SkinPacket::decode,

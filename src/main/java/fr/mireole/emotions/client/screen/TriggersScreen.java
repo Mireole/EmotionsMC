@@ -3,6 +3,7 @@ package fr.mireole.emotions.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import fr.mireole.emotions.Emotions;
+import fr.mireole.emotions.api.TriggersActionPair;
 import fr.mireole.emotions.api.trigger.Triggers;
 import fr.mireole.emotions.client.screen.widgets.ActiveTriggersList;
 import fr.mireole.emotions.client.screen.widgets.AvailableTriggerList;
@@ -39,12 +40,12 @@ public class TriggersScreen extends Screen {
         leftPos = (width - imageWidth) / 2;
         topPos = (height - imageHeight) / 2;
         TranslatableComponent newTriggerComponent = new TranslatableComponent("emotions.screen.triggers.new_trigger");
-        addRenderableWidget(new Button(leftPos+1, topPos+1, font.width(newTriggerComponent.getVisualOrderText())+20, 20, newTriggerComponent, (button) -> openAvailableTriggersList()));
-        activeTriggersList = new ActiveTriggersList(this, minecraft, width + 45, imageHeight-40, topPos+20, imageHeight+topPos-40, 50);
+        addRenderableWidget(new Button(leftPos + 1, topPos + 1, font.width(newTriggerComponent.getVisualOrderText()) + 20, 20, newTriggerComponent, (button) -> openAvailableTriggersList()));
+        activeTriggersList = new ActiveTriggersList(this, minecraft, width + 45, imageHeight - 40, topPos + 20, imageHeight + topPos - 40, 25);
         activeTriggersList.setLeftPos(0);
         addRenderableWidget(activeTriggersList);
         activeTriggersList.update();
-        availableTriggersList = new AvailableTriggerList(this, minecraft, width + 45, imageHeight-40, topPos+20, imageHeight+topPos-40, 20);
+        availableTriggersList = new AvailableTriggerList(this, minecraft, width + 45, imageHeight - 40, topPos + 20, imageHeight + topPos - 40, 20);
         availableTriggersList.setLeftPos(0);
     }
 
@@ -72,12 +73,12 @@ public class TriggersScreen extends Screen {
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             RenderSystem.setShaderTexture(0, SCREEN_BACKGROUND);
-            blit(stack, leftPos+150, topPos, 150, 20, imageWidth-150, 20);
+            blit(stack, leftPos + 150, topPos, 150, 20, imageWidth - 150, 20);
 
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             RenderSystem.setShaderTexture(0, SCREEN_BACKGROUND);
-            blit(stack, leftPos+150, imageHeight+topPos-40, 150, imageHeight+topPos-40, imageWidth-150, 20);
+            blit(stack, leftPos + 150, imageHeight + topPos - 40, 150, imageHeight + topPos - 40, imageWidth - 150, 20);
         }
     }
 
@@ -104,15 +105,20 @@ public class TriggersScreen extends Screen {
     }
 
     public void openAvailableTriggersList() {
-        if(availableTriggersList != null && !availableTriggersListOpened) {
+        openAvailableTriggersList(null);
+    }
+
+    public void openAvailableTriggersList(TriggersActionPair pair) {
+        if (availableTriggersList != null && !availableTriggersListOpened) {
             removeWidget(activeTriggersList);
+            availableTriggersList.update(pair);
             addRenderableWidget(availableTriggersList);
             availableTriggersListOpened = true;
         }
     }
 
     public void closeAvailableTriggersList() {
-        if(availableTriggersList != null && availableTriggersListOpened) {
+        if (availableTriggersList != null && availableTriggersListOpened) {
             removeWidget(availableTriggersList);
             availableTriggersListOpened = false;
             addRenderableWidget(activeTriggersList);

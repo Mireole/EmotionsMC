@@ -1,7 +1,6 @@
 package fr.mireole.emotions.network.packet;
 
 import fr.mireole.emotions.api.skin.SkinManager;
-import fr.mireole.emotions.api.skin.SkinSwapper;
 import fr.mireole.emotions.network.EmotionsNetwork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -23,24 +22,25 @@ public class SkinPacket {
     private final UUID player;
     private byte[] bytes;
 
-    public SkinPacket(String imageName, Path image, UUID player){
+    public SkinPacket(String imageName, Path image, UUID player) {
         this.imageName = imageName;
         this.image = image;
         this.player = player;
     }
 
-    public SkinPacket(String imageName, byte[] bytes, UUID player){
+    public SkinPacket(String imageName, byte[] bytes, UUID player) {
         this.imageName = imageName;
         this.bytes = bytes;
         this.player = player;
     }
 
-    public static void encode(SkinPacket packet, FriendlyByteBuf buffer){
+    public static void encode(SkinPacket packet, FriendlyByteBuf buffer) {
         try {
-            if(!packet.imageName.endsWith(".png")) throw new IllegalArgumentException("The image must be a .png");
+            if (!packet.imageName.endsWith(".png")) throw new IllegalArgumentException("The image must be a .png");
             buffer.writeUtf(packet.imageName);
             byte[] bytes = Files.readAllBytes(packet.image);
-            if(bytes.length > 8192) throw new IllegalArgumentException("The image size must be lower or equal to 8192");
+            if (bytes.length > 8192)
+                throw new IllegalArgumentException("The image size must be lower or equal to 8192");
             buffer.writeUUID(packet.player);
             buffer.writeByteArray(bytes);
 
@@ -49,13 +49,13 @@ public class SkinPacket {
         }
     }
 
-    public static SkinPacket decode(FriendlyByteBuf buffer){
+    public static SkinPacket decode(FriendlyByteBuf buffer) {
         String imageName = null;
         byte[] bytes = null;
         UUID player = null;
         try {
             imageName = buffer.readUtf();
-            if(!imageName.endsWith(".png")) throw new IllegalArgumentException("The image must be a .png");
+            if (!imageName.endsWith(".png")) throw new IllegalArgumentException("The image must be a .png");
             player = buffer.readUUID();
             bytes = buffer.readByteArray();
         } catch (IllegalArgumentException e) {
@@ -64,7 +64,7 @@ public class SkinPacket {
         return new SkinPacket(imageName, bytes, player);
     }
 
-    public static void handle(SkinPacket packet, Supplier<NetworkEvent.Context> contextSupplier){
+    public static void handle(SkinPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
         Path path1 = Path.of("skins/downloaded");
         try {
@@ -73,21 +73,19 @@ public class SkinPacket {
             e.printStackTrace();
         }
         String name = "";
-        if(context.getDirection() == NetworkDirection.PLAY_TO_CLIENT){
+        if (context.getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
             name = packet.imageName;
-        }
-        else if (context.getDirection() == NetworkDirection.PLAY_TO_SERVER){
+        } else if (context.getDirection() == NetworkDirection.PLAY_TO_SERVER) {
             if (context.getSender() != null) {
                 name = context.getSender().getUUID() + ".png";
             }
         }
         Path path = Path.of(path1.toString(), name);
         byte[] bytes = packet.bytes;
-        if(bytes.length > 8192) throw new IllegalArgumentException("The image size must be lower or equal to 8192");
+        if (bytes.length > 8192) throw new IllegalArgumentException("The image size must be lower or equal to 8192");
         try {
             Files.write(path, bytes);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         context.enqueueWork(() -> {
@@ -97,7 +95,7 @@ public class SkinPacket {
                     if (level != null) {
                         Player player = level.getPlayerByUUID(packet.player);
                         if (player != null) {
-                            SkinSwapper.setSkinFor(player, SkinManager.createSkin(path, SkinSwapper.isSlim(player)));
+                            SkinManager.setSkinFor(player, SkinManager.createSkin(path, SkinManager.isSlim(player)));
                         }
                     }
                 }
@@ -106,7 +104,7 @@ public class SkinPacket {
                     if (sender != null) {
                         SkinPacket skinPacket = new SkinPacket(sender.getUUID() + ".png", path, sender.getUUID());
                         sender.server.getPlayerList().broadcastAll(
-                            EmotionsNetwork.CHANNEL.toVanillaPacket(skinPacket, NetworkDirection.PLAY_TO_CLIENT)
+                                EmotionsNetwork.CHANNEL.toVanillaPacket(skinPacket, NetworkDirection.PLAY_TO_CLIENT)
                         );
                     }
                 }

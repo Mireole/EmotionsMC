@@ -14,7 +14,7 @@ public class ActionDeserializer implements JsonDeserializer<Action> {
     @Override
     public Action deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         JsonObject jsonObject = json.getAsJsonObject();
-        JsonPrimitive className= (JsonPrimitive) jsonObject.get("className");
+        JsonPrimitive className = (JsonPrimitive) jsonObject.get("className");
 
         String className1 = className.getAsString();
 
